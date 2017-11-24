@@ -1,9 +1,16 @@
 var express = require('express');
 var fs = require('fs');
+var path = require('path');
 var request = require('request');
 var axios = require('axios');
 var cheerio = require('cheerio');
 var app = express();
+var bodyParser = require('body-parser')
+
+app.use(bodyParser.json());       // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+  extended: true
+}));
 
 var options = {
   url: 'http://contracts.onecle.com/',
@@ -77,16 +84,21 @@ subCategories.forEach(subCategory=> {
 
 
 app.get('/', function (req, res) {
-
+  res.sendFile(path.join(__dirname + '/index.html'));
+});
+app.post('/', function (req, res) {
+  console.log(req.body);
+  let subCategory = req.body.data;
   axios.get(options.url)
     .then((response)=> {
       var $ = cheerio.load(response.data);
 
       let tagForSubCategory = $('a').filter(function () {
-        return $(this).text().trim() === subCategory;
+        return $(this).text().trim().toLowerCase() === subCategory.toLowerCase();
       });
       let linkForSubCategory = tagForSubCategory[0].attribs.href;
       return axios.get(linkForSubCategory)
+
     })
     .then((response)=> {
       $ = cheerio.load(response.data);
@@ -106,14 +118,11 @@ app.get('/', function (req, res) {
       return axios.get(linkToFinalHtml)
     })
     .then((response)=> {
-
-      fs.existsSync("./" + category) || fs.mkdirSync("./" + category);
-      fs.existsSync("./" + category + '/' + subCategory) || fs.mkdirSync("./" + category + '/' + subCategory);
-      fs.writeFile("./" + category + '/' + subCategory + '/' + fileName.substring(7) + '.html', response.data, ()=> {
-      });
+      // fs.existsSync("./" + category) || fs.mkdirSync("./" + category);
+      // fs.existsSync("./" + category + '/' + subCategory) || fs.mkdirSync("./" + category + '/' + subCategory);
+      // fs.writeFile("./" + category + '/' + subCategory + '/' + fileName + '.html', response.data, ()=> {
       res.send(response.data);
-    })
-
+    });
 });
 
 app.listen('4000');

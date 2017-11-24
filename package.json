@@ -6,6 +6,7 @@
   "author": "Scotch",
   "dependencies": {
     "axios": "^0.17.1",
+    "body-parser": "^1.18.2",
     "cheerio": "latest",
     "express": "latest",
     "request": "latest",
